@@ -108,5 +108,5 @@ jobs:
       if: env.CHECK_IMAGE == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: AK3-LineageOS-23.0-Salami-Official-KSU_${{ env.KSUVER }}-${{ env.BUILD_TIME }}
+        name: AK3-crDroid12-SM8550-KSU_${{ env.KSUVER }}-${{ env.BUILD_TIME }}
         path: kernel_workspace/AnyKernel3/*
