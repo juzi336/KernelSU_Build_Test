@@ -1,4 +1,4 @@
-name: Build LineageOS OPlus SM8550 Kernel
+name: Build OPlus SM8550 Kernel
 
 on:
   workflow_dispatch:
