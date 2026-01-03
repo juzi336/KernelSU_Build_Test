@@ -63,7 +63,7 @@ jobs:
       
     - name: Build kernel
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         LTO=thin
         export ARCH=arm64
         export SUBARCH=arm64
