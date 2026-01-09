@@ -52,7 +52,6 @@ jobs:
         sed -i 's/ -dirty//g' setlocalversion
         cd $GITHUB_WORKSPACE/kernel_workspace
         git clone --recursive https://github.com/crdroidandroid/android_kernel_oneplus_sm8550-modules -b 16.0 sm8550-modules --depth=1
-        sed -i '$a CONFIG_SALAMI_DTB=y' $GITHUB_WORKSPACE/kernel_workspace/android-kernel/arch/arm64/configs/vendor/oplus/kalama_GKI.config
 
     - name: Setup official KernelSU
       run: |
