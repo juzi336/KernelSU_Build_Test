@@ -1,0 +1,74 @@
+name: Build OnePlus 11 Kernel (Bazel / Kleaf)
+
+on:
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup build environment
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          git bc bison flex libssl-dev \
+          build-essential zip unzip \
+          python3 python-is-python3 \
+          dwarves libelf-dev
+
+    - name: Download kernel source
+      run: |
+        mkdir -p kernel_workspace
+        cd kernel_workspace
+        git clone --recursive \
+          https://github.com/LineageOS/android_kernel_oneplus_sm8550 \
+          -b lineage-23.0 kernel
+
+    - name: Setup KernelSU (optional)
+      run: |
+        cd kernel_workspace/kernel
+        curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash -s main
+        echo "KSUVER=$(cd KernelSU && git rev-list --count HEAD)" >> $GITHUB_ENV
+
+    - name: Build kernel with Bazel (Kleaf)
+      run: |
+        cd kernel_workspace/kernel
+
+        export BUILD_CONFIG=common/build.config.gki.kalama
+        export LTO=thin
+
+        tools/bazel run \
+          --config=fast \
+          //common:kernel_dist
+
+    - name: Check output
+      run: |
+        if [ ! -f kernel_workspace/kernel/out/kernel/dist/Image ]; then
+          echo "Kernel Image not found"
+          exit 1
+        fi
+
+    - name: Make AnyKernel3
+      run: |
+        cd kernel_workspace
+        git clone https://github.com/Kernel-SU/AnyKernel3
+        rm -rf AnyKernel3/.git
+        cp kernel/out/kernel/dist/Image AnyKernel3/
+
+    - name: Upload Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: Image-OnePlus11-Kleaf
+        path: kernel_workspace/kernel/out/kernel/dist/Image
+
+    - name: Upload AnyKernel3
+      uses: actions/upload-artifact@v4
+      with:
+        name: AK3-OnePlus11-Kleaf
+        path: kernel_workspace/AnyKernel3/*
