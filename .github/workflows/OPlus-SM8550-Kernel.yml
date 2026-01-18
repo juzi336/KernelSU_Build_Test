@@ -63,7 +63,7 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        tools/bazel run //common:kernel_aarch64_dist
+        tools/bazel run //common:kernel_aarch64_dist -- --destdir=out
     - name: Check a kernel output files
       run: |
        cd $GITHUB_WORKSPACE/kernel_workspace
