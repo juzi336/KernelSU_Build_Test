@@ -45,6 +45,7 @@ jobs:
         MAKE_ARGS="ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- KCFLAGS=-w"
         
         make O=out $MAKE_ARGS vendor/sdm845-perf_defconfig vendor/enchilada_defconfig
+        curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
         make -j$(nproc --all) O=out $MAKE_ARGS
 
     - name: 上传镜像
