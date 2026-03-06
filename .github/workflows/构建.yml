@@ -34,11 +34,12 @@ jobs:
         tar -C clang-aosp -xf clang-${{ env.CLANG_VERSION }}.tar.gz
 
     - name: 检出源码
-      run: git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-      cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-      curl -LSs https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh | bash -s main
-      bash $GITHUB_WORKSPACE/patches/kernel-4.19_5.4-patch.sh
-      echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/vendor/sdm845-perf_defconfig
+      run: |
+        git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        curl -LSs https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh | bash -s main
+        bash $GITHUB_WORKSPACE/patches/kernel-4.19_5.4-patch.sh
+        echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/vendor/sdm845-perf_defconfig
 
     - name: 编译内核
       run: |
