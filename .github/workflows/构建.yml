@@ -13,40 +13,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: 安装环境
+    - name: 环境与源码
       run: |
         sudo apt-get update
-        # 去掉了报错的 aarch64-linux-gnu-gcc，改用交叉编译通用的 binutils
-        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm python3 zip
-        mkdir -p $GITHUB_WORKSPACE/kernel_workspace
+        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm python3 zip gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+        git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} kernel
 
-    - name: 下载 Clang (r563880c)
+    - name: 下载 Clang
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace
-        mkdir clang-aosp
+        mkdir clang && cd clang
         wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android16-qpr2-release/clang-${{ env.CLANG_VERSION }}.tar.gz
-        tar -C clang-aosp -xf clang-${{ env.CLANG_VERSION }}.tar.gz
-
-    - name: 检出源码
-      run: |
-        git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        tar -xf clang-${{ env.CLANG_VERSION }}.tar.gz
+        echo "CLANG_PATH=$(pwd)/bin" >> $GITHUB_ENV
 
     - name: 编译内核
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        export PATH="$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH"
+        cd kernel
+        export PATH="${{ env.CLANG_PATH }}:$PATH"
         
-        # 核心：使用 LLVM=1 替代传统的 GCC 交叉编译器
-        MAKE_ARGS="ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LD=ld.lld"
+        # KCFLAGS="-w" 用于忽略 Clang 21 对 4.19 内核代码的警告报错
+        MAKE_ARGS="ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- KCFLAGS=-w"
         
         make O=out $MAKE_ARGS ${{ env.DEFCONFIG }}
         make -j$(nproc --all) O=out $MAKE_ARGS
 
-    - name: 上传内核镜像
+    - name: 上传镜像
       uses: actions/upload-artifact@v4
       with:
-        name: Avium-Kernel-Image
+        name: Avium-Kernel
         path: |
-          kernel_workspace/android-kernel/out/arch/arm64/boot/Image.gz-dtb
-          kernel_workspace/android-kernel/out/arch/arm64/boot/Image.gz
-          kernel_workspace/android-kernel/out/arch/arm64/boot/dtbo.img
+          kernel/out/arch/arm64/boot/Image.gz-dtb
+          kernel/out/arch/arm64/boot/dtbo.img
+          
