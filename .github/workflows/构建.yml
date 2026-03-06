@@ -16,7 +16,8 @@ jobs:
     - name: 安装环境
       run: |
         sudo apt-get update
-        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm aarch64-linux-gnu-gcc python3
+        # 去掉了报错的 aarch64-linux-gnu-gcc，改用交叉编译通用的 binutils
+        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm python3 zip
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
     - name: 下载 Clang (r563880c)
@@ -35,6 +36,7 @@ jobs:
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         export PATH="$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH"
         
+        # 核心：使用 LLVM=1 替代传统的 GCC 交叉编译器
         MAKE_ARGS="ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LD=ld.lld"
         
         make O=out $MAKE_ARGS ${{ env.DEFCONFIG }}
