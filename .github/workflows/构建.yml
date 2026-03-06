@@ -7,41 +7,50 @@ env:
   CLANG_VERSION: r563880c
   KERNEL_SRC: https://github.com/AviumUI-Devices/kernel_oneplus_sdm845
   KERNEL_BRANCH: avium-16.2
-  DEFCONFIG: vendor/sdm845-perf_defconfig
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: 环境与源码
+    - name: 安装环境
       run: |
         sudo apt-get update
-        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm python3 zip gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
-        git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} kernel
+        sudo apt-get install -y git bc build-essential flex bison libssl-dev libelf-dev clang lld llvm python3 zip
+        mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
-    - name: 下载 Clang
+    - name: 检查 Clang 缓存
+      id: cache-clang
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/kernel_workspace/clang-aosp
+        key: ${{ env.CLANG_VERSION }}
+
+    - name: 下载 Clang (仅在缓存失效时)
+      if: steps.cache-clang.outputs.cache-hit != 'true'
       run: |
-        mkdir clang && cd clang
+        cd $GITHUB_WORKSPACE/kernel_workspace
+        mkdir -p clang-aosp
         wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android16-qpr2-release/clang-${{ env.CLANG_VERSION }}.tar.gz
-        tar -xf clang-${{ env.CLANG_VERSION }}.tar.gz
-        echo "CLANG_PATH=$(pwd)/bin" >> $GITHUB_ENV
+        tar -C clang-aosp -xf clang-${{ env.CLANG_VERSION }}.tar.gz
+
+    - name: 检出源码
+      run: |
+        git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
 
     - name: 编译内核
       run: |
-        cd kernel
-        export PATH="${{ env.CLANG_PATH }}:$PATH"
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        export PATH="$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH"
         
-        # KCFLAGS="-w" 用于忽略 Clang 21 对 4.19 内核代码的警告报错
         MAKE_ARGS="ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- KCFLAGS=-w"
         
-        make O=out $MAKE_ARGS ${{ env.DEFCONFIG }}
+        make O=out $MAKE_ARGS vendor/sdm845-perf_defconfig vendor/enchilada_defconfig
         make -j$(nproc --all) O=out $MAKE_ARGS
 
     - name: 上传镜像
       uses: actions/upload-artifact@v4
       with:
-        name: Avium-Kernel
+        name: Avium-Kernel-SDM845
         path: |
-          kernel/out/arch/arm64/boot/Image.gz-dtb
-          kernel/out/arch/arm64/boot/dtbo.img
-          
+          kernel_workspace/android-kernel/out/arch/arm64/boot/Image.gz-dtb
+          kernel_workspace/android-kernel/out/arch/arm64/boot/dtbo.img
