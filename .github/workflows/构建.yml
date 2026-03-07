@@ -41,7 +41,7 @@ jobs:
         git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-        bash $GITHUB_WORKSPACE/patches/001.sh
+        bash $GITHUB_WORKSPACE/patches/002.sh
         sed -i 's/ -dirty//g' scripts/setlocalversion
 
     - name: 编译内核
