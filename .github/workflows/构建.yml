@@ -41,7 +41,7 @@ jobs:
         git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-        bash $GITHUB_WORKSPACE/patches/buding.sh
+        bash $GITHUB_WORKSPACE/patches/kernel-4.19_5.4-patch.sh
         echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/vendor/sdm845-perf_defconfig
         echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdm845-perf_defconfig
         sed -i 's/ -dirty//g' scripts/setlocalversion
