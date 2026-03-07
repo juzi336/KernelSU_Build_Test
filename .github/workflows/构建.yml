@@ -41,9 +41,12 @@ jobs:
         git clone --depth=1 ${{ env.KERNEL_SRC }} -b ${{ env.KERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-        patch -p1 < $GITHUB_WORKSPACE/patches/新.patch
-        echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/vendor/enchilada_defconfig
-        echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/enchilada_defconfig
+        patch -p1 < $GITHUB_WORKSPACE/patches/1.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/2.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/3.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/4.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/5.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/6.patch
         sed -i 's/ -dirty//g' scripts/setlocalversion
 
     - name: 编译内核
