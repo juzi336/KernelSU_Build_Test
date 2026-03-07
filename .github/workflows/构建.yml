@@ -5,7 +5,7 @@ on:
 
 env:
   CLANG_VERSION: r563880c
-  KERNEL_SRC: https://github.com/AviumUI-Devices/kernel_oneplus_sdm845
+  KERNEL_SRC: https://github.com/juzi336/kernel_oneplus_sdm845
   KERNEL_BRANCH: avium-16.2
 
 jobs:
@@ -43,6 +43,7 @@ jobs:
         curl -LSs https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh | bash -s main
         bash $GITHUB_WORKSPACE/patches/kernel-4.19_5.4-patch.sh
         echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/vendor/sdm845-perf_defconfig
+        sed -i 's/ -dirty//g' scripts/setlocalversion
 
     - name: 编译内核
       run: |
